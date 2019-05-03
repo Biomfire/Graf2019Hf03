@@ -7,8 +7,6 @@
 // Camera: perspective
 // Light: point
 //=============================================================================================
-//TODO Katica forogjon
-//TODO Katica NPR
 #include "framework.h"
 
 const int tessellationLevel = 30;
@@ -198,8 +196,26 @@ struct Light {
 //---------------------------
 	vec3 La, Le;
 	vec4 wLightPos;
+	vec4 position = vec4(0,0,20);
 
-	void Animate(float t) {	}
+	void Animate(float t) {
+	    vec4 q;
+	    q.x = cos(t/4);
+	    q.y = sin(t/4)*cos(t)/2;
+	    q.z = sin(t/4)*sin(t)/2;
+	    q.w = sin(t/4)*sqrt(3/4);
+	    vec3 v = (position.x, position.y, position.z);
+	    vec3 u(q.x, q.y, q.z);
+
+        // Extract the scalar part of the quaternion
+        float s = q.w;
+
+        // Do the math
+        vec3 pos = u * 2.0f * dot(u, v)
+                 + v*(s*s - dot(u, u))
+                 + cross(u, v)* 2.0f * s;
+        wLightPos = vec4(pos.x, pos.y, pos.z, 0);
+	}
 
 	void SetUniform(unsigned shaderProg, char * name) {
 		char buffer[256];
@@ -744,12 +760,12 @@ struct SurfaceObject : public Object{
         vec3 N  = surface->geometry->getNormal(surfaceCoords.x, surfaceCoords.y);
         vec3 point = surface->geometry->getCoords(surfaceCoords.x, surfaceCoords.y);
         mat4 position = mat4(
-                Ru.x,    Ru.y,    Ru.z,    0,
-                Rv.x,    Rv.y,    Rv.z,    0,
+                i.x,    i.y,    i.z,    0,
+                j.x,    j.y,    j.z,    0,
                 N.x,     N.y,     N.z,     0,
                 point.x, point.y, point.z, 1);
-        float floatpos[] = {Ru.x,    Ru.y,    Ru.z,    0,
-                           Rv.x,    Rv.y,    Rv.z,    0,
+        float floatpos[] = {i.x,    i.y,    i.z,    0,
+                           j.x,    j.y,    j.z,    0,
                            N.x,     N.y,     N.z,     0,
                            point.x, point.y, point.z, 1};
         float invpos[16];
@@ -799,6 +815,7 @@ struct Katica: public SurfaceObject{
         }
 
 };
+bool isClose = false;
 float Katica::anglewithU = 0;
 //---------------------------
 class Scene {
@@ -855,7 +872,7 @@ public:
         }
         katica = new Katica(sphereObject1, phongShader, material0, katicatext, halfelipsoid);
         katica->surfaceCoords = vec3((float)(rand() % 100) / 100.0f, (float)(rand() % 100) /100.0f, 0);
-        katica->scale = vec3(7.0/6, 6.0/6, 6.0/6);
+        katica->scale = vec3(10.0/6, 6.0/6, 6.0/6);
         objects.push_back(katica);
 		// Camera
 		camera.wEye = vec3(0, 0, 30);
@@ -881,7 +898,8 @@ public:
 
 	void Animate(float tstart, float tend) {
 	    camera.wLookat = vec3(katica->getRelCoords().x, katica->getRelCoords().y, katica->getRelCoords().z);
-        camera.wEye = vec3(katica->getRelCoords(vec3(-5,0,-5)).x, katica->getRelCoords(vec3(-5,0,-5)).y, katica->getRelCoords(vec3(-5,0,-5)).z);
+	    vec3 cameraDiff = isClose? vec3(-5,0,-5):vec3(-20,0,-20);
+        camera.wEye = vec3(katica->getRelCoords(cameraDiff).x, katica->getRelCoords(cameraDiff).y, katica->getRelCoords(cameraDiff).z);
 		for (int i = 0; i < lights.size(); i++) { lights[i].Animate(tend); }
 		for (Object * obj : objects) obj->Animate(tstart, tend);
 		katica->Animate(tstart, tend);
@@ -916,6 +934,7 @@ void onKeyboard(unsigned char key, int pX, int pY) {
             Katica::AddAngle();
             break;
         case ' ':
+            isClose = !isClose;
             break;
         default:
             break;
