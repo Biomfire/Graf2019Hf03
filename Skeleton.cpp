@@ -7,10 +7,140 @@
 // Camera: perspective
 // Light: point
 //=============================================================================================
+//TODO Katica forogjon
+//TODO Katica NPR
 #include "framework.h"
 
 const int tessellationLevel = 30;
+//https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
+bool gluInvertMatrix(const float m[16], float invOut[16]) {
+    float inv[16], det;
+    int i;
 
+    inv[0] = m[5] * m[10] * m[15] -
+             m[5] * m[11] * m[14] -
+             m[9] * m[6] * m[15] +
+             m[9] * m[7] * m[14] +
+             m[13] * m[6] * m[11] -
+             m[13] * m[7] * m[10];
+
+    inv[4] = -m[4] * m[10] * m[15] +
+             m[4] * m[11] * m[14] +
+             m[8] * m[6] * m[15] -
+             m[8] * m[7] * m[14] -
+             m[12] * m[6] * m[11] +
+             m[12] * m[7] * m[10];
+
+    inv[8] = m[4] * m[9] * m[15] -
+             m[4] * m[11] * m[13] -
+             m[8] * m[5] * m[15] +
+             m[8] * m[7] * m[13] +
+             m[12] * m[5] * m[11] -
+             m[12] * m[7] * m[9];
+
+    inv[12] = -m[4] * m[9] * m[14] +
+              m[4] * m[10] * m[13] +
+              m[8] * m[5] * m[14] -
+              m[8] * m[6] * m[13] -
+              m[12] * m[5] * m[10] +
+              m[12] * m[6] * m[9];
+
+    inv[1] = -m[1] * m[10] * m[15] +
+             m[1] * m[11] * m[14] +
+             m[9] * m[2] * m[15] -
+             m[9] * m[3] * m[14] -
+             m[13] * m[2] * m[11] +
+             m[13] * m[3] * m[10];
+
+    inv[5] = m[0] * m[10] * m[15] -
+             m[0] * m[11] * m[14] -
+             m[8] * m[2] * m[15] +
+             m[8] * m[3] * m[14] +
+             m[12] * m[2] * m[11] -
+             m[12] * m[3] * m[10];
+
+    inv[9] = -m[0] * m[9] * m[15] +
+             m[0] * m[11] * m[13] +
+             m[8] * m[1] * m[15] -
+             m[8] * m[3] * m[13] -
+             m[12] * m[1] * m[11] +
+             m[12] * m[3] * m[9];
+
+    inv[13] = m[0] * m[9] * m[14] -
+              m[0] * m[10] * m[13] -
+              m[8] * m[1] * m[14] +
+              m[8] * m[2] * m[13] +
+              m[12] * m[1] * m[10] -
+              m[12] * m[2] * m[9];
+
+    inv[2] = m[1] * m[6] * m[15] -
+             m[1] * m[7] * m[14] -
+             m[5] * m[2] * m[15] +
+             m[5] * m[3] * m[14] +
+             m[13] * m[2] * m[7] -
+             m[13] * m[3] * m[6];
+
+    inv[6] = -m[0] * m[6] * m[15] +
+             m[0] * m[7] * m[14] +
+             m[4] * m[2] * m[15] -
+             m[4] * m[3] * m[14] -
+             m[12] * m[2] * m[7] +
+             m[12] * m[3] * m[6];
+
+    inv[10] = m[0] * m[5] * m[15] -
+              m[0] * m[7] * m[13] -
+              m[4] * m[1] * m[15] +
+              m[4] * m[3] * m[13] +
+              m[12] * m[1] * m[7] -
+              m[12] * m[3] * m[5];
+
+    inv[14] = -m[0] * m[5] * m[14] +
+              m[0] * m[6] * m[13] +
+              m[4] * m[1] * m[14] -
+              m[4] * m[2] * m[13] -
+              m[12] * m[1] * m[6] +
+              m[12] * m[2] * m[5];
+
+    inv[3] = -m[1] * m[6] * m[11] +
+             m[1] * m[7] * m[10] +
+             m[5] * m[2] * m[11] -
+             m[5] * m[3] * m[10] -
+             m[9] * m[2] * m[7] +
+             m[9] * m[3] * m[6];
+
+    inv[7] = m[0] * m[6] * m[11] -
+             m[0] * m[7] * m[10] -
+             m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] -
+             m[8] * m[3] * m[6];
+
+    inv[11] = -m[0] * m[5] * m[11] +
+              m[0] * m[7] * m[9] +
+              m[4] * m[1] * m[11] -
+              m[4] * m[3] * m[9] -
+              m[8] * m[1] * m[7] +
+              m[8] * m[3] * m[5];
+
+    inv[15] = m[0] * m[5] * m[10] -
+              m[0] * m[6] * m[9] -
+              m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] -
+              m[8] * m[2] * m[5];
+
+    det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if (det == 0)
+        return false;
+
+    det = 1.0 / det;
+
+    for (i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+
+    return true;
+}
 //---------------------------
 struct Camera { // 3D camera
 //---------------------------
@@ -20,7 +150,7 @@ public:
 	Camera() {
 		asp = (float)windowWidth/windowHeight;
 		fov = 75.0f * (float)M_PI / 180.0f;
-		fp = 1; bp = 10;
+		fp = 1; bp = 50;
 	}
 	mat4 V() { // view matrix: translates the center to the origin
 		vec3 w = normalize(wEye - wLookat);
@@ -99,7 +229,34 @@ struct CheckerBoardTexture : public Texture {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 };
-
+//---------------------------
+struct KaticaPottyok : public Texture {
+//---------------------------
+    KaticaPottyok(const int width = 0, const int height = 0) : Texture() {
+        glBindTexture(GL_TEXTURE_2D, textureId);    // binding
+        std::vector<vec3> image(width * height);
+        const vec3 black(0, 0, 0), red(1, 0, 0);
+        int Woffset = width/4;
+        int Hoffset = height/4;
+        int radius = width > height? height / 16 : width / 16;
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) {
+                    if(length(vec2(y,x)-vec2(1*Woffset,1*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(1*Woffset,2*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(1*Woffset,3*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(2*Woffset,2*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(3*Woffset,1*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(3*Woffset,2*Hoffset))< 5 ||
+                    length(vec2(y,x)-vec2(3*Woffset,3*Hoffset))< 5) {
+                        image[y * width + x] = black;
+                    }
+                    else
+                        image[y *width + x] = red;
+            }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, &image[0]); //Texture->OpenGL
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+};
 //---------------------------
 struct RenderState {
 //---------------------------
@@ -453,8 +610,8 @@ class Klein : public ParamSurface{
 public:
     Klein(){Create();};
     vec3 getCoords(float u, float v){
-        float U = 2.0f * M_PI * u;
-        float V = 2.0f * M_PI * v;
+        float U = 2.0f * M_PI * fmod(u,1);
+        float V = 2.0f * M_PI * fmod(v,1);
         //Calculate Position
 
         float a = cos(U) * (sin(U)+1) * 6;
@@ -466,15 +623,15 @@ public:
         return vec3(x, y, z);
     }
     vec3 getRU(float u, float v){
-        return getCoords(u, v)-getCoords(u-0.001, v);
+        return normalize(getCoords(u, v)-getCoords(u-0.001, v));
     }
     vec3 getRV(float u, float v){
-        return  getCoords(u, v)-getCoords(u, v-0.001);
+        return  normalize(getCoords(u, v)-getCoords(u, v-0.001));
     }
     vec3 getNormal(float u, float v){
         vec3 drdU = getRU(u,v);
         vec3 drdV = getRV(u,v);
-        return cross(drdU, drdV);
+        return normalize(cross(drdU, drdV));
     }
     VertexData GenVertexData(float u, float v) final{
         VertexData vd;
@@ -520,14 +677,28 @@ public:
     }
 };
 //---------------------------
-class Sphere : public ParamSurface {
+class HalfElipsoid : public ParamSurface {
 //---------------------------
 public:
-	Sphere() { Create(); }
-
+	HalfElipsoid() { Create(); }
+    vec3 getCoords(float u, float v){
+	    v +=1;
+        return vec3(cos(u * 2.0f * M_PI) * sin(v/2*M_PI), sin(u*2.0f * M_PI) * sin(v/2*M_PI), cos(v/2*M_PI));
+    }
+    vec3 getRU(float u, float v){
+        return normalize(getCoords(u, v)-getCoords(u-0.001, v));
+    }
+    vec3 getRV(float u, float v){
+        return  normalize(getCoords(u, v)-getCoords(u, v-0.001));
+    }
+    vec3 getNormal(float u, float v){
+        vec3 drdU = getRU(u,v);
+        vec3 drdV = getRV(u,v);
+        return normalize(cross(drdU, drdV));
+    }
 	VertexData GenVertexData(float u, float v) {
 		VertexData vd;
-		vd.position = vd.normal = vec3(cosf(u * 2.0f * M_PI) * sinf(v*M_PI), sinf(u * 2.0f * M_PI) * sinf(v*M_PI), cosf(v*M_PI));
+		vd.position = vd.normal= getCoords(u,v);
 		vd.texcoord = vec2(u, v);
 		return vd;
 	}
@@ -550,7 +721,7 @@ public:
 		geometry = _geometry;
 	}
 
-	void Draw(RenderState state) {
+	virtual void Draw(RenderState state) {
 		state.M = ScaleMatrix(scale) * RotationMatrix(rotationAngle, rotationAxis) * TranslateMatrix(translation);
 		state.Minv = TranslateMatrix(-translation) * RotationMatrix(-rotationAngle, rotationAxis) * ScaleMatrix(vec3(1 / scale.x, 1 / scale.y, 1 / scale.z));
 		state.MVP = state.M * state.V * state.P;
@@ -560,27 +731,75 @@ public:
 		geometry->Draw();
 	}
 
-	virtual void Animate(float tstart, float tend) { }
+	virtual void Animate(float tstart, float tend) { rotationAngle += 0.8*(tend-tstart); }
 };
 struct SurfaceObject : public Object{
-    vec2 surfaceCoords = vec2(3,0);
+    vec2 dir = vec2(1,1);
+    vec3 surfaceCoords = vec3(0,0,0);
     Object* surface;
     SurfaceObject(Object * _surface, Shader * _shader, Material * _material, Texture * _texture, Geometry * _geometry):surface(_surface), Object(_shader,_material, _texture,_geometry){};
-    void Animate(float tstart, float tend) final{
-        vec3 Ru = geometry->getRU(surfaceCoords.x, surfaceCoords.y);
-        vec3 Rv = geometry->getRV(surfaceCoords.x, surfaceCoords.y);
-        vec3 N  = geometry->getNormal(surfaceCoords.x, surfaceCoords.y);
-        vec3 point = geometry->getCoords(surfaceCoords.x, surfaceCoords.y);
-        vec4 position = vec4(0, 1,0,1) * mat4(
-                Ru.x, Ru.y, Ru.z, 0,
-                Rv.x, Rv.y, Rv.z, 0,
-                N.x, N.y, N.z, 0,
-                point.x,point.y,point.z,1
-                );
-        translation = vec3(position.x, position.y, position.z);
+    void Draw(RenderState state){
+        vec3 i = surface->geometry->getRU(surfaceCoords.x, surfaceCoords.y)*dir.x;
+        vec3 j = surface->geometry->getRV(surfaceCoords.x, surfaceCoords.y)*dir.y;
+        vec3 N  = surface->geometry->getNormal(surfaceCoords.x, surfaceCoords.y);
+        vec3 point = surface->geometry->getCoords(surfaceCoords.x, surfaceCoords.y);
+        mat4 position = mat4(
+                Ru.x,    Ru.y,    Ru.z,    0,
+                Rv.x,    Rv.y,    Rv.z,    0,
+                N.x,     N.y,     N.z,     0,
+                point.x, point.y, point.z, 1);
+        float floatpos[] = {Ru.x,    Ru.y,    Ru.z,    0,
+                           Rv.x,    Rv.y,    Rv.z,    0,
+                           N.x,     N.y,     N.z,     0,
+                           point.x, point.y, point.z, 1};
+        float invpos[16];
+        gluInvertMatrix(floatpos, invpos);
+        mat4 positioninv (  invpos[0],invpos[1],invpos[2],invpos[3],
+                            invpos[4],invpos[5],invpos[6],invpos[7],
+                            invpos[5],invpos[9],invpos[10],invpos[11],
+                            invpos[6],invpos[13],invpos[14],invpos[15]);
+        state.M = ScaleMatrix(scale)*RotationMatrix(rotationAngle, rotationAxis)*TranslateMatrix(translation)*position*ScaleMatrix(surface->scale)*RotationMatrix(surface->rotationAngle, surface->rotationAxis)*TranslateMatrix(surface->translation);
+        state.Minv = TranslateMatrix(-surface->translation) * RotationMatrix(-surface->rotationAngle, surface->rotationAxis) * ScaleMatrix(vec3(1 / surface->scale.x, 1 / surface->scale.y, 1 / surface->scale.z)) * positioninv * TranslateMatrix(-translation) * RotationMatrix(-rotationAngle, rotationAxis) * ScaleMatrix(vec3(1 / scale.x, 1 / scale.y, 1 / scale.z));
+        state.MVP = state.M * state.V * state.P;
+        state.material = material;
+        state.texture = texture;
+        shader->Bind(state);
+        geometry->Draw();
+    }
+    vec4 getRelCoords(vec3 relCoords = vec3(0,0,0)){
+        vec3 Ru = surface->geometry->getRU(surfaceCoords.x, surfaceCoords.y);
+        vec3 Rv = surface->geometry->getRV(surfaceCoords.x, surfaceCoords.y);
+        vec3 N  = surface->geometry->getNormal(surfaceCoords.x, surfaceCoords.y);
+        vec3 point = surface->geometry->getCoords(surfaceCoords.x, surfaceCoords.y);
+        mat4 position = mat4(
+                Ru.x,    Ru.y,    Ru.z,    0,
+                Rv.x,    Rv.y,    Rv.z,    0,
+                N.x,     N.y,     N.z,     0,
+                point.x, point.y, point.z, 1);
+        return vec4(relCoords.x,relCoords.y, relCoords.z,1)*ScaleMatrix(scale)*RotationMatrix(rotationAngle, rotationAxis)*TranslateMatrix(translation)*position*ScaleMatrix(surface->scale)*RotationMatrix(surface->rotationAngle, surface->rotationAxis)*TranslateMatrix(surface->translation);
     }
 };
+struct Katica: public SurfaceObject{
+        Katica(Object * _surface, Shader * _shader, Material * _material, Texture * _texture, Geometry * _geometry):SurfaceObject(_surface,_shader,_material, _texture,_geometry)
+        {
+            rotationAxis = vec3(1,0,0);
+            rotationAngle = M_PI;
+        };
+        static float anglewithU;
+        float V = 0.1;
+        static void AddAngle(){
+            anglewithU += M_PI/4;
+        };
+        static void RemoveAngle(){
+            anglewithU -= M_PI/4;
+        };
+        void Animate(float tstart, float tend){
+            surfaceCoords.x += cos(anglewithU)*V*(tend-tstart);
+            surfaceCoords.y += sin(anglewithU)*V*(tend-tstart);
+        }
 
+};
+float Katica::anglewithU = 0;
 //---------------------------
 class Scene {
 //---------------------------
@@ -588,6 +807,7 @@ class Scene {
 public:
 	Camera camera; // 3D camera
 	std::vector<Light> lights;
+	Katica* katica;
 
 	void Build() {
 		// Shaders
@@ -611,26 +831,34 @@ public:
 		// Textures
 		Texture * texture4x8 = new CheckerBoardTexture(4, 8);
 		Texture * texture15x20 = new CheckerBoardTexture(15, 20);
+		Texture * katicatext = new KaticaPottyok(50,50);
 
 		// Geometries
 		Geometry * klein = new Klein();
 		Geometry * dini = new Dini();
+		Geometry * halfelipsoid = new HalfElipsoid();
 
 		// Create objects by setting up their vertex data on the GPU
 		Object * sphereObject1 = new Object(phongShader, material0, texture4x8, klein);
-		sphereObject1->translation = vec3(0, 0, 0);
+		sphereObject1->translation = vec3(0, 1, 0);
 		sphereObject1->rotationAxis = vec3(0, 1, 0);
-		sphereObject1->scale = vec3(0.1,0.1,0.1);
+		sphereObject1->scale = vec3(0.5,0.5,0.5);
 		objects.push_back(sphereObject1);
-        SurfaceObject * sphereObject2 = new SurfaceObject(sphereObject1,phongShader, material0, texture4x8, dini);
-        sphereObject2->translation = vec3(10, 10, 10);
-        sphereObject2->rotationAxis = vec3(0, 1, 0);
-        sphereObject2->scale = vec3(0.1,0.1,0.11);
-        objects.push_back(sphereObject2);
 
-
+        for(int i = 0; i < 30; i++) {
+            SurfaceObject *noveny = new SurfaceObject(sphereObject1, phongShader, material0, texture4x8, dini);
+            noveny->translation = vec3(0, 0, 3);
+            noveny->surfaceCoords = vec3((float)(rand() % 100) / 100.0f, (float)(rand() % 100) /100.0f, 0);
+            noveny->rotationAxis = vec3(0, 0, 1);
+            noveny->scale = vec3(1.0, 1.0, 1.0);
+            objects.push_back(noveny);
+        }
+        katica = new Katica(sphereObject1, phongShader, material0, katicatext, halfelipsoid);
+        katica->surfaceCoords = vec3((float)(rand() % 100) / 100.0f, (float)(rand() % 100) /100.0f, 0);
+        katica->scale = vec3(7.0/6, 6.0/6, 6.0/6);
+        objects.push_back(katica);
 		// Camera
-		camera.wEye = vec3(0, 0, 6);
+		camera.wEye = vec3(0, 0, 30);
 		camera.wLookat = vec3(0, 0, 0);
 		camera.wVup = vec3(0, 1, 0);
 
@@ -648,12 +876,15 @@ public:
 		state.P = camera.P();
 		state.lights = lights;
 		for (Object * obj : objects) obj->Draw(state);
+		katica->Draw(state);
 	}
 
 	void Animate(float tstart, float tend) {
-		camera.Animate(tend);
+	    camera.wLookat = vec3(katica->getRelCoords().x, katica->getRelCoords().y, katica->getRelCoords().z);
+        camera.wEye = vec3(katica->getRelCoords(vec3(-5,0,-5)).x, katica->getRelCoords(vec3(-5,0,-5)).y, katica->getRelCoords(vec3(-5,0,-5)).z);
 		for (int i = 0; i < lights.size(); i++) { lights[i].Animate(tend); }
 		for (Object * obj : objects) obj->Animate(tstart, tend);
+		katica->Animate(tstart, tend);
 	}
 };
 
@@ -676,7 +907,20 @@ void onDisplay() {
 }
 
 // Key of ASCII code pressed
-void onKeyboard(unsigned char key, int pX, int pY) { }
+void onKeyboard(unsigned char key, int pX, int pY) {
+    switch(key){
+        case 's':
+            Katica::RemoveAngle();
+            break;
+        case 'a':
+            Katica::AddAngle();
+            break;
+        case ' ':
+            break;
+        default:
+            break;
+    }
+}
 
 // Key of ASCII code released
 void onKeyboardUp(unsigned char key, int pX, int pY) { }
